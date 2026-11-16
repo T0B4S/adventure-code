@@ -3,7 +3,7 @@
 // Servicio de Google Sheets: Realiza el fetch y parseo de las preguntas en formato CSV.
 export async function fetchQuestionsFromSheet() {
   try {
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/TU_ID_DE_HOJA/gviz/tq?tqx=out:csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQgTgA60IOKeXTbguOHtFG_cmh-gfUMO9K8gne0Ik0KwRg9wd7FNy3RjELUGaRpHIk4tB3nl-_0pwDc/pub?gid=0&single=true&output=csv";
     const res = await fetch(sheetUrl);
     
     if (!res.ok) {
