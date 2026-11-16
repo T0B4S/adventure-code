@@ -1,19 +1,22 @@
-// Pantalla de Carga: Muestra el estado de sincronización con Google Sheets usando los recursos reales.
+// Pantalla de Carga: Muestra únicamente la barra de progreso animada y el texto limpio.
 import barraCarga from "../assets/screens/barra-carga.gif";
-import profesorPensando from "../assets/avatars/profesor-pensando.gif";
 
 export default function LoadingScreen() {
   return (
-    <div className="text-center space-y-6 p-8 bg-slate-900/90 border border-slate-700 rounded-xl max-w-md w-full shadow-2xl">
-      <div className="flex justify-center">
-        <img src={profesorPensando} alt="Pensando..." className="w-24 h-24 object-contain animate-pulse" />
-      </div>
-      <div className="space-y-2">
-        <p className="text-lg font-bold text-white">Cargando preguntas de Google Sheets...</p>
-        <p className="text-xs text-slate-400">Preparando el desafío académico</p>
-      </div>
-      <div className="flex justify-center pt-2">
-        <img src={barraCarga} alt="Barra de carga" className="w-64 h-auto object-contain" />
+    <div className="fixed inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden select-none">
+      <div className="flex flex-col items-center gap-6 max-w-md w-full text-center">
+        {/* Barra de carga animada */}
+        <img
+          src={barraCarga}
+          alt="Cargando"
+          className="w-64 sm:w-80 h-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+          style={{ imageRendering: "pixelated" }}
+        />
+
+        {/* Texto de carga limpio */}
+        <p className="text-white text-lg sm:text-xl font-black tracking-widest uppercase animate-pulse">
+          Cargando preguntas...
+        </p>
       </div>
     </div>
   );
