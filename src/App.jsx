@@ -122,7 +122,13 @@ export default function App() {
     <div className="min-h-screen w-full bg-slate-900 text-white flex flex-col items-center justify-center font-sans">
       {gameState === "REGISTER" && <RegisterForm onStart={handleStartRegister} />}
       {gameState === "LOADING" && <LoadingScreen />}
-      {gameState === "TUTORIAL" && <TutorialModal onNext={() => setGameState("ROULETTE")} />}
+      {gameState === "TUTORIAL" && (
+        <TutorialModal
+          playerName={playerName}
+          avatarId={selectedAvatar}
+          onNext={() => setGameState("ROULETTE")}
+        />
+      )}
       {gameState === "ROULETTE" && (
         <RouletteView 
           playerName={playerName} 
