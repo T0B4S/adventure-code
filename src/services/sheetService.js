@@ -1,4 +1,42 @@
-//Conexión con Google Sheets (CSV)
+// Conexión con Google Sheets (CSV)
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const character = text[i];
+
+    if (character === '"') {
+      if (inQuotes && text[i + 1] === '"') {
+        cell += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (character === "," && !inQuotes) {
+      row.push(cell);
+      cell = "";
+    } else if ((character === "\n" || character === "\r") && !inQuotes) {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      if (character === "\r" && text[i + 1] === "\n") i += 1;
+    } else {
+      cell += character;
+    }
+  }
+
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows;
+}
 
 // Servicio de Google Sheets: Realiza el fetch y parseo de las preguntas en formato CSV.
 export async function fetchQuestionsFromSheet() {
@@ -11,19 +49,27 @@ export async function fetchQuestionsFromSheet() {
     }
 
     const text = await res.text();
-    const rows = text.split("\n").map(r => r.split(","));
+    const rows = parseCsv(text);
     
-    const parsedQuestions = rows.slice(1).map((row, idx) => ({
-      id: idx + 1,
-      difficulty: row[1]?.replace(/"/g, "").trim().toLowerCase() || "verde",
-      type: row[2]?.replace(/"/g, "").trim() || "input",
-      prompt: row[3]?.replace(/"/g, "").trim() || "",
-      opA: row[4]?.replace(/"/g, "").trim() || "",
-      opB: row[5]?.replace(/"/g, "").trim() || "",
-      opC: row[6]?.replace(/"/g, "").trim() || "",
-      correct: row[7]?.replace(/"/g, "").trim() || "",
-      explanation: row[8]?.replace(/"/g, "").trim() || ""
-    })).filter(q => q.prompt !== "");
+    const parsedQuestions = rows.slice(1).map((row, idx) => {
+      let rawDiff = row[1]?.trim().toLowerCase() || "verde";
+      // Normalizamos las dificultades del Sheet para que coincidan con el juego
+      if (rawDiff === "amarillo") rawDiff = "amarilla";
+      if (rawDiff === "rojo") rawDiff = "roja";
+
+      return {
+        id: idx + 1,
+        difficulty: rawDiff,
+        type: row[2]?.trim() || "input",
+        // CORREGIDO: Mapeamos como 'question' para que QuestionCard.jsx lo lea perfectamente
+        question: row[3]?.trim() || "", 
+        opA: row[4]?.trim() || "",
+        opB: row[5]?.trim() || "",
+        opC: row[6]?.trim() || "",
+        correct: row[7]?.trim() || "",
+        explanation: row[8]?.trim() || ""
+      };
+    }).filter(q => q.question !== "");
 
     return parsedQuestions;
   } catch (err) {

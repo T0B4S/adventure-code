@@ -179,6 +179,8 @@ export default function App() {
           difficulty={selectedDifficulty} 
           lives={lives} 
           score={score} 
+          playerName={playerName}
+          avatarId={selectedAvatar}
           onAnswer={handleAnswerSubmit} 
         />
       )}
