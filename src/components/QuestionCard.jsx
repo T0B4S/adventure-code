@@ -1,11 +1,14 @@
 // QuestionCard: Maneja la pizarra, opciones y el estado visual del avatar de forma sincronizada.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import bgRuleta from "../assets/screens/fondo-ruleta.png";
 import pizarraImg from "../assets/screens/pizzara-preguntas.png";
 import inputBgImg from "../assets/screens/cuadro-respuesta-escrita.png";
 import optionBgImg from "../assets/screens/cuadro-opcion-multiple.png";
 import btnAcceptImg from "../assets/screens/cuadro-para-aceptar-escrito.png";
 import btnResetImg from "../assets/screens/boton-reinicio.png";
+import pensandoAudio from "../assets/audio/musica-pensando.mp3";
+import danoFalsoAudio from "../assets/audio/sonido-falso-daño.mp3";
+import danoRealAudio from "../assets/audio/sonido-daño.mp3";
 
 // Importación de avatares
 import alumna1Pensando from "../assets/avatars/alumna1-pensando.gif";
@@ -25,11 +28,29 @@ import profesorAcertado from "../assets/avatars/profesor-acertado.gif";
 import profesorFalso from "../assets/avatars/profesor-falso.gif";
 
 export default function QuestionCard({ question, difficulty, lives, score, playerName, avatarId, onAnswer, onReset }) {
+  const pensandoAudioRef = useRef(null);
   const [answerInput, setAnswerInput] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarState, setAvatarState] = useState("pensando"); // "pensando" | "acertado" | "falso"
+
+  useEffect(() => {
+    const audio = new Audio(pensandoAudio);
+    audio.loop = true;
+    audio.volume = 0.3;
+    pensandoAudioRef.current = audio;
+
+    audio.play().catch(err => {
+      console.log("Audio de pensamiento bloqueado por el navegador:", err);
+    });
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      pensandoAudioRef.current = null;
+    };
+  }, [question]);
 
   const avatars = {
     1: { pensando: alumna1Pensando, acertado: alumna1Acertado, falso: alumna1Falso },
@@ -62,10 +83,24 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
     if (isSubmitting || !question) return;
     setIsSubmitting(true);
 
+    if (pensandoAudioRef.current) {
+      pensandoAudioRef.current.pause();
+      pensandoAudioRef.current.currentTime = 0;
+    }
+
     // Ejecutamos la validación en App.jsx y capturamos el cambio de avatar de forma inmediata
-    onAnswer(userAnswer, setFeedback, (newState) => {
+    const outcome = onAnswer(userAnswer, setFeedback, (newState) => {
       setAvatarState(newState);
     });
+
+    if (!outcome.isCorrect) {
+      const audioFile = outcome.receivedDamage ? danoRealAudio : danoFalsoAudio;
+      const audio = new Audio(audioFile);
+      audio.volume = 0.6;
+      audio.play().catch(err => {
+        console.log("Audio de respuesta bloqueado por el navegador:", err);
+      });
+    }
   };
 
   const handleInputSubmit = (e) => {

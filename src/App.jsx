@@ -105,6 +105,7 @@ export default function App() {
           setGameState("ROULETTE");
         }
       }, 1500);
+      return { isCorrect: true, receivedDamage: false };
     } else {
       // LÓGICA DE LA RULETA RUSA (FALLO)
       const probability = bulletsLeft / chamberSize;
@@ -142,6 +143,7 @@ export default function App() {
             setGameState("ROULETTE");
           }
         }, 2000);
+        return { isCorrect: false, receivedDamage: true };
       } else {
         if (setAvatarState) setAvatarState("falso");
 
@@ -163,6 +165,7 @@ export default function App() {
         setTimeout(() => {
           setGameState("ROULETTE");
         }, 2000);
+        return { isCorrect: false, receivedDamage: false };
       }
     }
   };
