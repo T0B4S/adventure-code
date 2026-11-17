@@ -1,5 +1,5 @@
 // RouletteView: Sincronizado perfectamente con la dificultad elegida y el avatar correcto.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import bgRuleta from "../assets/screens/fondo-ruleta.png";
 import ruletaQuieta from "../assets/screens/ruleta-quieta.gif";
 import ruletaGirando from "../assets/screens/ruleta-girando.gif";
@@ -10,6 +10,8 @@ import ruletaRojo from "../assets/screens/ruleta-resultado-rojo.gif";
 import palancaQuieta from "../assets/screens/palanca-accionada.png";
 import accionandoPalanca from "../assets/screens/accionando-palanca.gif";
 import btnResetImg from "../assets/screens/boton-reinicio.png";
+import sonidoPalanca from "../assets/audio/sonido-palanca.mp3";
+import sonidoRuleta from "../assets/audio/ruleta-girando.mp3";
 
 import alumna1Sel from "../assets/avatars/alumna1-seleccion.gif";
 import alumna2Sel from "../assets/avatars/alumna2-seleccion.gif";
@@ -20,6 +22,19 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
   const [isSpinning, setIsSpinning] = useState(false);
   const [leverActive, setLeverActive] = useState(false);
   const [resultColor, setResultColor] = useState(null);
+  const palancaAudioRef = useRef(null);
+  const ruletaAudioRef = useRef(null);
+  const timeoutsRef = useRef([]);
+
+  useEffect(() => () => {
+    timeoutsRef.current.forEach(clearTimeout);
+    [palancaAudioRef.current, ruletaAudioRef.current].forEach(audio => {
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    });
+  }, []);
 
   // Mapeo robusto de avatares (Soporta números y strings)
   const avatarMap = {
@@ -37,26 +52,49 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
   const selectedAvatarImg = avatarMap[avatarId] || alumna2Sel;
 
   const handlePullLever = () => {
-    if (isSpinning || resultColor) return;
-    setIsSpinning(true);
+    if (isSpinning || leverActive || resultColor) return;
     setLeverActive(true);
+
+    palancaAudioRef.current = new Audio(sonidoPalanca);
+    palancaAudioRef.current.volume = 0.6;
+    palancaAudioRef.current.play().catch(err => {
+      console.log("Audio palanca bloqueado:", err);
+    });
 
     // 1. Elegimos la dificultad aquí de forma centralizada
     const difficulties = ["verde", "amarilla", "roja"];
     const chosenDiff = difficulties[Math.floor(Math.random() * difficulties.length)];
 
-    // 2. Duración de la animación de la palanca y giro de la ruleta (1.2s)
-    setTimeout(() => {
+    const scheduleTimeout = (callback, delay) => {
+      const timeoutId = setTimeout(() => {
+        timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId);
+        callback();
+      }, delay);
+      timeoutsRef.current.push(timeoutId);
+    };
+
+    // 2. Dejamos sonar la palanca antes de iniciar el giro.
+    scheduleTimeout(() => {
+      setIsSpinning(true);
+      ruletaAudioRef.current = new Audio(sonidoRuleta);
+      ruletaAudioRef.current.volume = 0.5;
+      ruletaAudioRef.current.play().catch(err => {
+        console.log("Audio ruleta bloqueado:", err);
+      });
+    }, 400);
+
+    // 3. La ruleta gira durante 1.2 segundos antes de mostrar el resultado.
+    scheduleTimeout(() => {
       setLeverActive(false);
       setIsSpinning(false);
       setResultColor(chosenDiff); // Muestra el GIF exacto del color ganador
 
-      // 3. Pausa de 1.2 segundos mostrando el resultado en la ruleta antes de ir a la pregunta
-      setTimeout(() => {
+      // 4. Pausa mostrando el resultado antes de ir a la pregunta.
+      scheduleTimeout(() => {
         onSpin(chosenDiff); // Enviamos el color exacto a App.jsx
       }, 1200);
 
-    }, 1200);
+    }, 1600);
   };
 
   const getRouletteImage = () => {
@@ -139,12 +177,12 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
               className="text-white text-[10px] sm:text-xs font-extrabold mb-2 uppercase tracking-wider text-center max-w-[130px]"
               style={{ textShadow: "0 2px 4px rgba(0,0,0,1)" }}
             >
-              {isSpinning ? "Girando..." : resultColor ? `¡Tocó ${resultColor}!` : "¡Tira de la palanca!"}
+              {isSpinning ? "Girando..." : leverActive ? "Accionando..." : resultColor ? `¡Tocó ${resultColor}!` : "¡Tira de la palanca!"}
             </p>
             <button
               type="button"
               onClick={handlePullLever}
-              disabled={isSpinning || Boolean(resultColor)}
+              disabled={isSpinning || leverActive || Boolean(resultColor)}
               className="bg-transparent border-0 p-0 transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed cursor-pointer focus:outline-none drop-shadow-[0_10px_16px_rgba(0,0,0,0.95)]"
             >
               <img
