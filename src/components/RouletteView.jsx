@@ -86,7 +86,7 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
             <span className="text-xs uppercase font-extrabold text-slate-400">Vidas:</span>
             <div className="flex gap-1">
               {[...Array(3)].map((_, i) => (
-                <span key={i} className={`text-lg ${i < lives ? "text-red-500" : "text-slate-600"}`}>
+                <span key={i} className={`text-lg ${i < lives ? "text-red-500" : "text-slate-600 opacity-30"}`}>
                   ❤️
                 </span>
               ))}

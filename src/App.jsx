@@ -65,8 +65,8 @@ export default function App() {
       if (setAvatarState) setAvatarState("acertado");
 
       const pointsEarned = selectedDifficulty === "roja" ? 30 : selectedDifficulty === "amarilla" ? 20 : 10;
+      setScore(prevScore => prevScore + pointsEarned);
       const newScore = score + pointsEarned;
-      setScore(newScore);
 
       setFeedback(
         <div className="p-3 bg-green-600/30 text-green-400 border border-green-500 rounded text-center font-bold shadow-lg">
@@ -87,13 +87,12 @@ export default function App() {
       const isBulletShot = Math.random() < probability;
 
       if (isBulletShot) {
-        // 💥 ¡BANG! El disparo salió (Daño real) -> Activamos animación ACERTADO (disparo)
         if (setAvatarState) setAvatarState("acertado");
 
         const nextLives = lives - 1;
         const nextShots = shotsTaken + 1;
-        setLives(nextLives);
-        setShotsTaken(nextShots);
+        setLives(prevLives => prevLives - 1);
+        setShotsTaken(prevShots => prevShots + 1);
 
         const nextBullets = bulletsLeft - 1;
         const nextChamber = chamberSize - 1;
@@ -106,7 +105,6 @@ export default function App() {
           setChamberSize(nextChamber);
         }
 
-        // El mensaje de daño se ejecuta fuera del hook, de forma directa
         setFeedback(
           <div className="p-3 bg-red-600/30 text-red-400 border border-red-500 rounded text-center font-bold animate-pulse shadow-lg">
             💥 ¡BANG! El disparo salió (Probabilidad: {Math.round(probability * 100)}%) y perdiste 1 vida.
@@ -121,7 +119,6 @@ export default function App() {
           }
         }, 2000);
       } else {
-        // 💨 ¡CLIC! Recámara vacía (Se salvó) -> Activamos animación FALSO (alivio)
         if (setAvatarState) setAvatarState("falso");
 
         const nextChamber = chamberSize - 1;
@@ -181,7 +178,7 @@ export default function App() {
       )}
       {gameState === "QUESTION" && currentQuestion && (
         <QuestionCard 
-          key={currentQuestion.id + "-" + score + "-" + lives}
+          key={currentQuestion.id}
           
           question={currentQuestion} 
           difficulty={selectedDifficulty} 
