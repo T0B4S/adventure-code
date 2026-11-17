@@ -197,6 +197,9 @@ export default function App() {
         <GameOverView 
           status={gameState} 
           score={score} 
+          lives={lives}
+          playerName={playerName}
+          avatarId={selectedAvatar}
           shotsTaken={shotsTaken} 
           onReset={handleResetGame} 
         />
