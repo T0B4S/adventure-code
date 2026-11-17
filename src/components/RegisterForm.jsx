@@ -1,9 +1,10 @@
 // Componente de Registro: Captura el nombre del usuario y la selección de los 4 personajes con los GIFs al 100% de opacidad.
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import bgEscuela from "../assets/screens/escuela-fondo.png";
 import cartelInicio from "../assets/screens/cartel-inicio.gif";
 import botonComenzar from "../assets/screens/boton-comenzar.gif";
 import marcoAvatares from "../assets/screens/marco-avatares.png";
+import inicioAudioFile from "../assets/audio/inicio-loop.mp3";
 import alumna1Sel from "../assets/avatars/alumna1-seleccion.gif";
 import alumna2Sel from "../assets/avatars/alumna2-seleccion.gif";
 import alumnoSel from "../assets/avatars/alumno-seleccion.gif";
@@ -12,6 +13,24 @@ import profesorSel from "../assets/avatars/profesor-seleccion.gif";
 export default function RegisterForm({ onStart }) {
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState(1);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio(inicioAudioFile);
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.4;
+
+    audioRef.current.play().catch(err => {
+      console.log("El navegador requiere interacción previa para reproducir audio:", err);
+    });
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   const avatarsList = [
     { id: 1, name: "Alumna 1", img: alumna1Sel },
@@ -23,6 +42,10 @@ export default function RegisterForm({ onStart }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
     onStart(name, avatar);
   };
 
