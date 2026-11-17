@@ -1,12 +1,13 @@
-// RouletteView: Pantalla principal de la ruleta con fondo del patio, palanca interactiva y marcador.
+// RouletteView: Sincronizado perfectamente con la dificultad elegida y el avatar correcto.
 import { useState } from "react";
 import bgRuleta from "../assets/screens/fondo-ruleta.png";
 import ruletaQuieta from "../assets/screens/ruleta-quieta.gif";
 import ruletaGirando from "../assets/screens/ruleta-girando.gif";
-import ruletaVerde from "../assets/screens/ruleta-verde.gif";
-import ruletaAmarillo from "../assets/screens/ruleta-amarillo.gif";
-import ruletaRojo from "../assets/screens/ruleta-rojo.gif";
-import palancaQuieta from "../assets/screens/palanca-quieta.png";
+import ruletaVerde from "../assets/screens/ruleta-resultado-verde.gif";
+import ruletaAmarillo from "../assets/screens/ruleta-resultado-amarillo.gif";
+import ruletaRojo from "../assets/screens/ruleta-resultado-rojo.gif";
+
+import palancaQuieta from "../assets/screens/palanca-accionada.png";
 import accionandoPalanca from "../assets/screens/accionando-palanca.gif";
 
 import alumna1Sel from "../assets/avatars/alumna1-seleccion.gif";
@@ -17,43 +18,67 @@ import profesorSel from "../assets/avatars/profesor-seleccion.gif";
 export default function RouletteView({ playerName, avatarId, lives, score, onSpin }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [leverActive, setLeverActive] = useState(false);
+  const [resultColor, setResultColor] = useState(null);
 
+  // Mapeo robusto de avatares (Soporta números y strings)
   const avatarMap = {
-    1: { name: "Alumna 1", img: alumna1Sel },
-    2: { name: "Alumna 2", img: alumna2Sel },
-    3: { name: "Alumno", img: alumnoSel },
-    4: { name: "Profesor", img: profesorSel },
+    1: alumna1Sel,
+    "1": alumna1Sel,
+    2: alumna2Sel,
+    "2": alumna2Sel,
+    3: alumnoSel,
+    "3": alumnoSel,
+    4: profesorSel,
+    "4": profesorSel,
   };
 
-  const selectedAvatar = avatarMap[Number(avatarId)] || avatarMap[1];
+  // Si avatarId llega vacío o no coincide, por defecto usa alumna1 o el que venga
+  const selectedAvatarImg = avatarMap[avatarId] || alumna2Sel;
 
   const handlePullLever = () => {
-    if (isSpinning) return;
+    if (isSpinning || resultColor) return;
     setIsSpinning(true);
     setLeverActive(true);
 
-    // Simula la animación de la palanca y el giro de la ruleta antes de invocar la lógica del juego
+    // 1. Elegimos la dificultad aquí de forma centralizada
+    const difficulties = ["verde", "amarilla", "roja"];
+    const chosenDiff = difficulties[Math.floor(Math.random() * difficulties.length)];
+
+    // 2. Duración de la animación de la palanca y giro de la ruleta (1.2s)
     setTimeout(() => {
       setLeverActive(false);
       setIsSpinning(false);
-      onSpin();
-    }, 1800);
+      setResultColor(chosenDiff); // Muestra el GIF exacto del color ganador
+
+      // 3. Pausa de 1.2 segundos mostrando el resultado en la ruleta antes de ir a la pregunta
+      setTimeout(() => {
+        onSpin(chosenDiff); // Enviamos el color exacto a App.jsx
+      }, 1200);
+
+    }, 1200);
+  };
+
+  const getRouletteImage = () => {
+    if (isSpinning) return ruletaGirando;
+    if (resultColor === "verde") return ruletaVerde;
+    if (resultColor === "amarilla") return ruletaAmarillo;
+    if (resultColor === "roja") return ruletaRojo;
+    return ruletaQuieta;
   };
 
   return (
     <div className="fixed inset-0 w-full h-full flex items-center justify-center p-4 overflow-hidden select-none">
       {/* Fondo de la escuela (patio) */}
-      <img 
-        src={bgRuleta} 
-        alt="Fondo Ruleta" 
+      <img
+        src={bgRuleta}
+        alt="Fondo Ruleta"
         className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
       />
 
-      {/* Capa de contraste oscura sutil */}
-      <div className="absolute inset-0 bg-slate-950/30"></div>
+      <div className="absolute inset-0 bg-slate-950/20 pointer-events-none"></div>
 
-      {/* Contenedor principal de la interfaz */}
-      <div className="relative z-10 max-w-5xl w-full h-full flex flex-col justify-between py-6 px-4">
+      {/* Contenedor principal */}
+      <div className="relative z-10 max-w-6xl w-full h-full flex flex-col justify-between py-5 px-4">
         
         {/* Barra superior: Vidas, Nombre y Puntaje */}
         <div className="flex justify-between items-center bg-slate-950/85 border-2 border-amber-500/70 rounded-xl px-6 py-3 shadow-2xl backdrop-blur-sm">
@@ -80,57 +105,52 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
           </div>
         </div>
 
-        {/* Centro: Avatar del jugador a la izquierda y Ruleta en el centro */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 my-auto">
+        {/* Fila única: Personaje (Izq) | Palanca (Centro) | Ruleta (Der) */}
+        <div className="w-full flex flex-row items-end justify-center gap-8 sm:gap-14 md:gap-20 pb-6 mt-auto">
           
-          {/* Avatar del jugador en juego */}
-          <div className="flex flex-col items-center bg-slate-950/80 border border-white/20 p-4 rounded-xl shadow-2xl">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
-              <img 
-                src={selectedAvatar.img} 
-                alt={selectedAvatar.name} 
-                className="w-full h-full object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)]"
-                style={{ imageRendering: "pixelated" }}
-              />
-            </div>
-            <span className="mt-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
-              En Juego
-            </span>
-          </div>
-
-          {/* Ruleta central animada */}
+          {/* 1. IZQUIERDA: Personaje seleccionado */}
           <div className="flex flex-col items-center">
-            <div className="w-64 sm:w-80 md:w-96 aspect-square flex items-center justify-center drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)]">
-              <img 
-                src={isSpinning ? ruletaGirando : ruletaQuieta} 
-                alt="Ruleta" 
-                className="w-full h-full object-contain select-none"
-                style={{ imageRendering: "pixelated" }}
-              />
-            </div>
-          </div>
-
-        </div>
-
-        {/* Parte inferior: Palanca interactiva para girar */}
-        <div className="flex flex-col items-center pb-2">
-          <p className="text-white text-xs sm:text-sm font-bold mb-2 uppercase tracking-wider" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.95)" }}>
-            {isSpinning ? "Girando tambor..." : "¡Haz clic en la palanca para girar!"}
-          </p>
-
-          <button
-            type="button"
-            onClick={handlePullLever}
-            disabled={isSpinning}
-            className="group bg-transparent border-0 p-0 transition-transform hover:scale-115 active:scale-95 disabled:opacity-80 disabled:cursor-not-allowed cursor-pointer focus:outline-none drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
-          >
-            <img 
-              src={leverActive ? accionandoPalanca : palancaQuieta} 
-              alt="Palanca" 
-              className="h-24 sm:h-28 w-auto object-contain select-none transition-transform"
+            <img
+              src={selectedAvatarImg}
+              alt="Avatar Seleccionado"
+              className="h-44 sm:h-56 md:h-64 w-auto object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,0.95)]"
               style={{ imageRendering: "pixelated" }}
             />
-          </button>
+          </div>
+
+          {/* 2. MEDIO: Palanca interactiva */}
+          <div className="flex flex-col items-center">
+            <p
+              className="text-white text-[10px] sm:text-xs font-extrabold mb-2 uppercase tracking-wider text-center max-w-[130px]"
+              style={{ textShadow: "0 2px 4px rgba(0,0,0,1)" }}
+            >
+              {isSpinning ? "Girando..." : resultColor ? `¡Tocó ${resultColor}!` : "¡Tira de la palanca!"}
+            </p>
+            <button
+              type="button"
+              onClick={handlePullLever}
+              disabled={isSpinning || Boolean(resultColor)}
+              className="bg-transparent border-0 p-0 transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed cursor-pointer focus:outline-none drop-shadow-[0_10px_16px_rgba(0,0,0,0.95)]"
+            >
+              <img
+                src={leverActive ? accionandoPalanca : palancaQuieta}
+                alt="Palanca"
+                className="h-24 sm:h-28 md:h-32 w-auto object-contain"
+                style={{ imageRendering: "pixelated" }}
+              />
+            </button>
+          </div>
+
+          {/* 3. DERECHA: Ruleta */}
+          <div className="flex flex-col items-center">
+            <img
+              src={getRouletteImage()}
+              alt="Ruleta"
+              className="w-56 sm:w-72 md:w-80 aspect-square object-contain drop-shadow-[0_12px_20px_rgba(0,0,0,0.95)]"
+              style={{ imageRendering: "pixelated" }}
+            />
+          </div>
+
         </div>
 
       </div>

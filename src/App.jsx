@@ -42,9 +42,9 @@ export default function App() {
     }, 1500);
   };
 
-  const spinRoulette = () => {
+  const spinRoulette = (forcedDifficulty = null) => {
     const difficulties = ["verde", "amarilla", "roja"];
-    const randomDiff = difficulties[Math.floor(Math.random() * difficulties.length)];
+    const randomDiff = forcedDifficulty || difficulties[Math.floor(Math.random() * difficulties.length)];
     setSelectedDifficulty(randomDiff);
 
     const available = questions.filter(q => q.difficulty === randomDiff);
@@ -167,6 +167,7 @@ export default function App() {
       {gameState === "ROULETTE" && (
         <RouletteView 
           playerName={playerName} 
+          avatarId={selectedAvatar}
           lives={lives} 
           score={score} 
           onSpin={spinRoulette} 
