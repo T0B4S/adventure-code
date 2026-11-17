@@ -1,4 +1,4 @@
-// Motor Principal: Controla la máquina de estados, el puntaje, las vidas y la lógica de la ruleta rusa.
+// Motor Principal: Controla la máquina de estados, el puntaje, las vidas y la lógica de la ruleta rusa con tambor físico de 6 recámaras.
 import { useState } from "react";
 import { fetchQuestionsFromSheet } from "./services/sheetService";
 import { FALLBACK_QUESTIONS } from "./data/mockQuestions";
@@ -17,6 +17,10 @@ export default function App() {
   const [lives, setLives] = useState(3);
   const [score, setScore] = useState(0);
   const [shotsTaken, setShotsTaken] = useState(0);
+  
+  // Estados para simular el tambor físico de la ruleta rusa
+  const [chamberSize, setChamberSize] = useState(6);
+  const [bulletsLeft, setBulletsLeft] = useState(3);
   
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -74,7 +78,10 @@ export default function App() {
         }
       }, 1500);
     } else {
-      const isBulletShot = Math.random() < 0.5;
+      // LÓGICA DEL TAMBOR FÍSICO SECUENCIAL
+      // Probabilidad = bulletsLeft / chamberSize (ej. 3/6 = 50%, luego 3/5 = 60%, etc.)
+      const probability = bulletsLeft / chamberSize;
+      const isBulletShot = Math.random() < probability;
 
       if (isBulletShot) {
         const nextLives = lives - 1;
@@ -82,9 +89,22 @@ export default function App() {
         setLives(nextLives);
         setShotsTaken(nextShots);
 
+        // Al disparar una bala, se reduce tanto la cantidad de balas como el tamaño del tambor
+        const nextBullets = bulletsLeft - 1;
+        const nextChamber = chamberSize - 1;
+
+        if (nextBullets <= 0 || nextChamber <= 0) {
+          // Si ya no quedan balas o recámaras, rellenamos el tambor nuevamente para el siguiente ciclo
+          setBulletsLeft(3);
+          setChamberSize(6);
+        } else {
+          setBulletsLeft(nextBullets);
+          setChamberSize(nextChamber);
+        }
+
         setFeedback(
           <div className="p-3 bg-red-600/30 text-red-400 border border-red-500 rounded text-center font-bold animate-pulse">
-            💥 ¡BANG! El disparo salió y perdiste 1 vida.
+            💥 ¡BANG! El disparo salió (Probabilidad: {Math.round(probability * 100)}%) y perdiste 1 vida.
           </div>
         );
 
@@ -96,9 +116,20 @@ export default function App() {
           }
         }, 2000);
       } else {
+        // Si se salva (clic en recámara vacía), el tambor se reduce en 1 espacio pero conserva las 3 balas
+        const nextChamber = chamberSize - 1;
+
+        if (nextChamber <= 0 || bulletsLeft >= nextChamber) {
+          // Si por cálculo llegamos al límite donde las recámaras vacías se acaban, aseguramos bala o reseteamos
+          setBulletsLeft(3);
+          setChamberSize(6);
+        } else {
+          setChamberSize(nextChamber);
+        }
+
         setFeedback(
           <div className="p-3 bg-yellow-600/30 text-yellow-400 border border-yellow-500 rounded text-center font-bold">
-            💨 ¡CLIC! Recámara vacía. Te salvaste del disparo.
+            💨 ¡CLIC! Recámara vacía (Probabilidad era {Math.round(probability * 100)}%). Te salvaste.
           </div>
         );
 
@@ -113,6 +144,8 @@ export default function App() {
     setLives(3);
     setScore(0);
     setShotsTaken(0);
+    setBulletsLeft(3);
+    setChamberSize(6);
     setPlayerName("");
     setSelectedAvatar(null);
     setGameState("REGISTER");
@@ -122,13 +155,15 @@ export default function App() {
     <div className="min-h-screen w-full bg-slate-900 text-white flex flex-col items-center justify-center font-sans">
       {gameState === "REGISTER" && <RegisterForm onStart={handleStartRegister} />}
       {gameState === "LOADING" && <LoadingScreen />}
+      
       {gameState === "TUTORIAL" && (
-        <TutorialModal
-          playerName={playerName}
-          avatarId={selectedAvatar}
-          onNext={() => setGameState("ROULETTE")}
+        <TutorialModal 
+          playerName={playerName} 
+          avatarId={selectedAvatar} 
+          onNext={() => setGameState("ROULETTE")} 
         />
       )}
+
       {gameState === "ROULETTE" && (
         <RouletteView 
           playerName={playerName} 
