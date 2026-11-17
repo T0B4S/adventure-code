@@ -1,6 +1,8 @@
 // GameOverView.jsx: Pantallas finales inmersivas a pantalla completa con el estilo visual del juego.
-import React from "react";
+import { useEffect, useRef } from "react";
 import bgRuleta from "../assets/screens/fondo-ruleta.png"; // Fondo general del patio escolar
+import victoryAudioFile from "../assets/audio/musica-victoria.mp3";
+import defeatAudioFile from "../assets/audio/musica-game-over.mp3";
 
 // --- IMPORTACIÓN DE IMÁGENES DESDE SCREENS ---
 import alumna1Derrota from "../assets/screens/alumna1-derrota-gameOver.png";
@@ -20,6 +22,27 @@ import profesorVictoria from "../assets/screens/alumno-victoria.png";
 import profesorPerfecta from "../assets/screens/alumno-victoria-perfecta.png";
 
 export default function GameOverView({ status, score, lives, playerName, avatarId, onReset }) {
+  const endAudioRef = useRef(null);
+  const isVictory = status === "VICTORY_INJURED" || status === "VICTORY_PERFECT";
+
+  useEffect(() => {
+    const audio = new Audio(isVictory ? victoryAudioFile : defeatAudioFile);
+    audio.loop = true;
+    audio.volume = 0.2;
+    endAudioRef.current = audio;
+
+    audio.play().catch(err => {
+      console.log("Reproducción de audio final bloqueada por el navegador:", err);
+    });
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      if (endAudioRef.current === audio) {
+        endAudioRef.current = null;
+      }
+    };
+  }, [isVictory]);
   
   const endScreens = {
     1: { perfect: alumna1Perfecta, normal: alumna1Victoria, defeat: alumna1Derrota },
@@ -36,6 +59,14 @@ export default function GameOverView({ status, score, lives, playerName, avatarI
 
   const isDefeat = lives <= 0 || status === "GAME_OVER";
   const isPerfect = score >= 50 && lives === 3;
+
+  const handleRestartClick = () => {
+    if (endAudioRef.current) {
+      endAudioRef.current.pause();
+      endAudioRef.current.currentTime = 0;
+    }
+    onReset();
+  };
 
   let finalImage = currentAvatarScreens.defeat;
   let finalTitle = "¡GAME OVER - PERDISTE!";
@@ -112,7 +143,7 @@ export default function GameOverView({ status, score, lives, playerName, avatarI
         <div className="w-full pt-1">
           <button
             type="button"
-            onClick={onReset}
+            onClick={handleRestartClick}
             className={`w-full py-3.5 ${btnBg} font-black uppercase rounded-xl transition-transform hover:scale-[1.02] active:scale-95 shadow-xl cursor-pointer border-2 flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide`}
           >
             🔄 VOLVER AL INICIO (MENÚ PRINCIPAL)

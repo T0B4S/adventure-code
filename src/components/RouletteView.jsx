@@ -56,7 +56,7 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
     setLeverActive(true);
 
     palancaAudioRef.current = new Audio(sonidoPalanca);
-    palancaAudioRef.current.volume = 0.6;
+    palancaAudioRef.current.volume = 0.25;
     palancaAudioRef.current.play().catch(err => {
       console.log("Audio palanca bloqueado:", err);
     });
@@ -77,7 +77,7 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
     scheduleTimeout(() => {
       setIsSpinning(true);
       ruletaAudioRef.current = new Audio(sonidoRuleta);
-      ruletaAudioRef.current.volume = 0.5;
+      ruletaAudioRef.current.volume = 0.2;
       ruletaAudioRef.current.play().catch(err => {
         console.log("Audio ruleta bloqueado:", err);
       });

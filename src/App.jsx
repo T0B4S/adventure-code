@@ -31,7 +31,7 @@ export default function App() {
   useEffect(() => {
     const audio = new Audio(inicioAudioFile);
     audio.loop = true;
-    audio.volume = 0.4;
+    audio.volume = 0.1;
     registerAudioRef.current = audio;
 
     audio.play().catch(err => {

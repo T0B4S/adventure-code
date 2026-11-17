@@ -9,7 +9,7 @@ export default function LoadingScreen() {
   useEffect(() => {
     audioRef.current = new Audio(loadingAudioFile);
     audioRef.current.loop = true;
-    audioRef.current.volume = 0.5;
+    audioRef.current.volume = 0.2;
 
     audioRef.current.play().catch(err => {
       console.log("Reproducción de audio bloqueada por el navegador:", err);

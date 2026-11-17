@@ -38,7 +38,7 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
   useEffect(() => {
     const audio = new Audio(pensandoAudio);
     audio.loop = true;
-    audio.volume = 0.3;
+    audio.volume = 0.15;
     pensandoAudioRef.current = audio;
 
     audio.play().catch(err => {
@@ -96,7 +96,7 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
     if (!outcome.isCorrect) {
       const audioFile = outcome.receivedDamage ? danoRealAudio : danoFalsoAudio;
       const audio = new Audio(audioFile);
-      audio.volume = 0.6;
+      audio.volume = 0.25;
       audio.play().catch(err => {
         console.log("Audio de respuesta bloqueado por el navegador:", err);
       });
