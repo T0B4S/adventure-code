@@ -9,13 +9,14 @@ import ruletaRojo from "../assets/screens/ruleta-resultado-rojo.gif";
 
 import palancaQuieta from "../assets/screens/palanca-accionada.png";
 import accionandoPalanca from "../assets/screens/accionando-palanca.gif";
+import btnResetImg from "../assets/screens/boton-reinicio.png";
 
 import alumna1Sel from "../assets/avatars/alumna1-seleccion.gif";
 import alumna2Sel from "../assets/avatars/alumna2-seleccion.gif";
 import alumnoSel from "../assets/avatars/alumno-seleccion.gif";
 import profesorSel from "../assets/avatars/profesor-seleccion.gif";
 
-export default function RouletteView({ playerName, avatarId, lives, score, onSpin }) {
+export default function RouletteView({ playerName, avatarId, lives, score, onSpin, onReset }) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [leverActive, setLeverActive] = useState(false);
   const [resultColor, setResultColor] = useState(null);
@@ -103,6 +104,20 @@ export default function RouletteView({ playerName, avatarId, lives, score, onSpi
             <span className="text-xs uppercase font-extrabold text-slate-400">Puntaje:</span>
             <span className="text-emerald-400 font-black text-lg">{score} / 50 pts</span>
           </div>
+
+          <button
+            type="button"
+            onClick={onReset}
+            title="Reiniciar partida"
+            className="group relative flex items-center justify-center p-0 bg-transparent border-0 cursor-pointer transition-transform hover:scale-110 active:scale-95"
+          >
+            <img
+              src={btnResetImg}
+              alt="Reiniciar"
+              className="h-8 w-8 sm:h-10 sm:w-10 object-contain drop-shadow-md"
+              style={{ imageRendering: "pixelated" }}
+            />
+          </button>
         </div>
 
         {/* Fila única: Personaje (Izq) | Palanca (Centro) | Ruleta (Der) */}

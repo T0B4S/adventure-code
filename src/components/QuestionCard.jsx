@@ -5,6 +5,7 @@ import pizarraImg from "../assets/screens/pizzara-preguntas.png";
 import inputBgImg from "../assets/screens/cuadro-respuesta-escrita.png";
 import optionBgImg from "../assets/screens/cuadro-opcion-multiple.png";
 import btnAcceptImg from "../assets/screens/cuadro-para-aceptar-escrito.png";
+import btnResetImg from "../assets/screens/boton-reinicio.png";
 
 // Importación de avatares
 import alumna1Pensando from "../assets/avatars/alumna1-pensando.gif";
@@ -23,7 +24,7 @@ import profesorPensando from "../assets/avatars/profesor-pensando.gif";
 import profesorAcertado from "../assets/avatars/profesor-acertado.gif";
 import profesorFalso from "../assets/avatars/profesor-falso.gif";
 
-export default function QuestionCard({ question, difficulty, lives, score, playerName, avatarId, onAnswer }) {
+export default function QuestionCard({ question, difficulty, lives, score, playerName, avatarId, onAnswer, onReset }) {
   const [answerInput, setAnswerInput] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -121,6 +122,20 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
             <span className="text-xs uppercase font-extrabold text-slate-400">Puntaje:</span>
             <span className="text-emerald-400 font-black text-lg">{score} / 50 pts</span>
           </div>
+
+          <button
+            type="button"
+            onClick={onReset}
+            title="Reiniciar partida"
+            className="group relative flex items-center justify-center p-0 bg-transparent border-0 cursor-pointer transition-transform hover:scale-110 active:scale-95"
+          >
+            <img
+              src={btnResetImg}
+              alt="Reiniciar"
+              className="h-8 w-8 sm:h-10 sm:w-10 object-contain drop-shadow-md"
+              style={{ imageRendering: "pixelated" }}
+            />
+          </button>
         </div>
 
         {/* Zona Central */}

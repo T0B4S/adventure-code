@@ -143,14 +143,16 @@ export default function App() {
     }
   };
 
-  const resetGame = () => {
-    setLives(3);
+  const handleResetGame = () => {
+    setPlayerName("");
+    setSelectedAvatar(null);
     setScore(0);
+    setLives(3);
     setShotsTaken(0);
     setBulletsLeft(3);
     setChamberSize(6);
-    setPlayerName("");
-    setSelectedAvatar(null);
+    setCurrentQuestion(null);
+    setSelectedDifficulty("verde");
     setGameState("REGISTER");
   };
 
@@ -174,6 +176,7 @@ export default function App() {
           lives={lives} 
           score={score} 
           onSpin={spinRoulette} 
+          onReset={handleResetGame}
         />
       )}
       {gameState === "QUESTION" && currentQuestion && (
@@ -187,6 +190,7 @@ export default function App() {
           playerName={playerName}
           avatarId={selectedAvatar}
           onAnswer={handleAnswerSubmit} 
+          onReset={handleResetGame}
         />
       )}
       {(gameState === "GAME_OVER" || gameState === "VICTORY_INJURED" || gameState === "VICTORY_PERFECT") && (
@@ -194,7 +198,7 @@ export default function App() {
           status={gameState} 
           score={score} 
           shotsTaken={shotsTaken} 
-          onReset={resetGame} 
+          onReset={handleResetGame} 
         />
       )}
     </div>
