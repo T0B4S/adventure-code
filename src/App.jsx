@@ -1,7 +1,8 @@
 // Motor Principal: Controla la máquina de estados, el puntaje, las vidas y la lógica de la ruleta rusa con tambor físico de 6 recámaras.
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchQuestionsFromSheet } from "./services/sheetService";
 import { FALLBACK_QUESTIONS } from "./data/mockQuestions";
+import inicioAudioFile from "./assets/audio/inicio-loop.mp3";
 import RegisterForm from "./components/RegisterForm";
 import LoadingScreen from "./components/LoadingScreen";
 import TutorialModal from "./components/TutorialModal";
@@ -11,6 +12,7 @@ import GameOverView from "./components/GameOverView";
 
 export default function App() {
   const [gameState, setGameState] = useState("REGISTER"); 
+  const registerAudioRef = useRef(null);
   const [playerName, setPlayerName] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   
@@ -26,7 +28,29 @@ export default function App() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
 
+  useEffect(() => {
+    const audio = new Audio(inicioAudioFile);
+    audio.loop = true;
+    audio.volume = 0.4;
+    registerAudioRef.current = audio;
+
+    audio.play().catch(err => {
+      console.log("El navegador requiere interacción previa para reproducir audio:", err);
+    });
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      registerAudioRef.current = null;
+    };
+  }, []);
+
   const handleStartRegister = async (name, avatar) => {
+    if (registerAudioRef.current) {
+      registerAudioRef.current.pause();
+      registerAudioRef.current.currentTime = 0;
+    }
+
     setPlayerName(name);
     setSelectedAvatar(avatar);
     setGameState("LOADING");
@@ -144,6 +168,13 @@ export default function App() {
   };
 
   const handleResetGame = () => {
+    if (registerAudioRef.current) {
+      registerAudioRef.current.currentTime = 0;
+      registerAudioRef.current.play().catch(err => {
+        console.log("El navegador requiere interacción previa para reproducir audio:", err);
+      });
+    }
+
     setPlayerName("");
     setSelectedAvatar(null);
     setScore(0);

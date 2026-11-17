@@ -1,7 +1,28 @@
 // Pantalla de Carga: Muestra únicamente la barra de progreso animada y el texto limpio.
+import { useEffect, useRef } from "react";
 import barraCarga from "../assets/screens/barra-carga.gif";
+import loadingAudioFile from "../assets/audio/barra-cargando.mp3";
 
 export default function LoadingScreen() {
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio(loadingAudioFile);
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.5;
+
+    audioRef.current.play().catch(err => {
+      console.log("Reproducción de audio bloqueada por el navegador:", err);
+    });
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden select-none">
       <div className="flex flex-col items-center gap-6 max-w-md w-full text-center">
