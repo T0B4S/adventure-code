@@ -56,16 +56,20 @@ export default function App() {
     setGameState("QUESTION");
   };
 
-  const handleAnswerSubmit = (answerGiven, setFeedback) => {
-    const isCorrect = answerGiven.trim().toLowerCase() === currentQuestion.correct.toLowerCase();
+  const handleAnswerSubmit = (answerGiven, setFeedback, setAvatarState) => {
+    const correctAns = String(currentQuestion?.correct || "").trim().toLowerCase();
+    const userAns = String(answerGiven || "").trim().toLowerCase();
+    const isCorrect = userAns === correctAns;
 
     if (isCorrect) {
+      if (setAvatarState) setAvatarState("acertado");
+
       const pointsEarned = selectedDifficulty === "roja" ? 30 : selectedDifficulty === "amarilla" ? 20 : 10;
       const newScore = score + pointsEarned;
       setScore(newScore);
-      
+
       setFeedback(
-        <div className="p-3 bg-green-600/30 text-green-400 border border-green-500 rounded text-center font-bold">
+        <div className="p-3 bg-green-600/30 text-green-400 border border-green-500 rounded text-center font-bold shadow-lg">
           ¡Respuesta Correcta! +{pointsEarned} pts
         </div>
       );
@@ -78,23 +82,23 @@ export default function App() {
         }
       }, 1500);
     } else {
-      // LÓGICA DEL TAMBOR FÍSICO SECUENCIAL
-      // Probabilidad = bulletsLeft / chamberSize (ej. 3/6 = 50%, luego 3/5 = 60%, etc.)
+      // LÓGICA DE LA RULETA RUSA (FALLO)
       const probability = bulletsLeft / chamberSize;
       const isBulletShot = Math.random() < probability;
 
       if (isBulletShot) {
+        // 💥 ¡BANG! El disparo salió (Daño real) -> Activamos animación ACERTADO (disparo)
+        if (setAvatarState) setAvatarState("acertado");
+
         const nextLives = lives - 1;
         const nextShots = shotsTaken + 1;
         setLives(nextLives);
         setShotsTaken(nextShots);
 
-        // Al disparar una bala, se reduce tanto la cantidad de balas como el tamaño del tambor
         const nextBullets = bulletsLeft - 1;
         const nextChamber = chamberSize - 1;
 
         if (nextBullets <= 0 || nextChamber <= 0) {
-          // Si ya no quedan balas o recámaras, rellenamos el tambor nuevamente para el siguiente ciclo
           setBulletsLeft(3);
           setChamberSize(6);
         } else {
@@ -102,8 +106,9 @@ export default function App() {
           setChamberSize(nextChamber);
         }
 
+        // El mensaje de daño se ejecuta fuera del hook, de forma directa
         setFeedback(
-          <div className="p-3 bg-red-600/30 text-red-400 border border-red-500 rounded text-center font-bold animate-pulse">
+          <div className="p-3 bg-red-600/30 text-red-400 border border-red-500 rounded text-center font-bold animate-pulse shadow-lg">
             💥 ¡BANG! El disparo salió (Probabilidad: {Math.round(probability * 100)}%) y perdiste 1 vida.
           </div>
         );
@@ -116,11 +121,12 @@ export default function App() {
           }
         }, 2000);
       } else {
-        // Si se salva (clic en recámara vacía), el tambor se reduce en 1 espacio pero conserva las 3 balas
+        // 💨 ¡CLIC! Recámara vacía (Se salvó) -> Activamos animación FALSO (alivio)
+        if (setAvatarState) setAvatarState("falso");
+
         const nextChamber = chamberSize - 1;
 
         if (nextChamber <= 0 || bulletsLeft >= nextChamber) {
-          // Si por cálculo llegamos al límite donde las recámaras vacías se acaban, aseguramos bala o reseteamos
           setBulletsLeft(3);
           setChamberSize(6);
         } else {
@@ -128,7 +134,7 @@ export default function App() {
         }
 
         setFeedback(
-          <div className="p-3 bg-yellow-600/30 text-yellow-400 border border-yellow-500 rounded text-center font-bold">
+          <div className="p-3 bg-yellow-600/30 text-yellow-400 border border-yellow-500 rounded text-center font-bold shadow-lg">
             💨 ¡CLIC! Recámara vacía (Probabilidad era {Math.round(probability * 100)}%). Te salvaste.
           </div>
         );
@@ -175,6 +181,8 @@ export default function App() {
       )}
       {gameState === "QUESTION" && currentQuestion && (
         <QuestionCard 
+          key={currentQuestion.id + "-" + score + "-" + lives}
+          
           question={currentQuestion} 
           difficulty={selectedDifficulty} 
           lives={lives} 

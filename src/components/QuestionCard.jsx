@@ -1,4 +1,4 @@
-// QuestionCard: Manejo robusto de avatares, opciones múltiples y transición visual inmediata.
+// QuestionCard: Maneja la pizarra, opciones y el estado visual del avatar de forma sincronizada.
 import { useState } from "react";
 import bgRuleta from "../assets/screens/fondo-ruleta.png";
 import pizarraImg from "../assets/screens/pizzara-preguntas.png";
@@ -6,7 +6,7 @@ import inputBgImg from "../assets/screens/cuadro-respuesta-escrita.png";
 import optionBgImg from "../assets/screens/cuadro-opcion-multiple.png";
 import btnAcceptImg from "../assets/screens/cuadro-para-aceptar-escrito.png";
 
-// Importación de avatares con sus nombres reales exactos
+// Importación de avatares
 import alumna1Pensando from "../assets/avatars/alumna1-pensando.gif";
 import alumna1Acertado from "../assets/avatars/alumna1-acertado.gif";
 import alumna1Falso from "../assets/avatars/alumna1-falso.gif";
@@ -57,30 +57,25 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
     question.type?.toLowerCase() === "choice" || 
     (question.opA && question.opA.trim() !== "");
 
-  const handleValidationAndSubmission = (userAnswer) => {
+  const handleSubmission = (userAnswer) => {
     if (isSubmitting || !question) return;
     setIsSubmitting(true);
 
-    const cleanUserAns = userAnswer.trim().toLowerCase();
-    const cleanCorrectAns = question.correct.trim().toLowerCase();
-    const isCorrect = cleanUserAns === cleanCorrectAns;
-
-    // Cambiamos el GIF de forma local e inmediata en cuanto el usuario responde
-    setAvatarState(isCorrect ? "acertado" : "falso");
-
-    // Ejecutamos la lógica principal en App.jsx (puntaje, vidas, ruleta rusa)
-    onAnswer(userAnswer, setFeedback, isCorrect);
+    // Ejecutamos la validación en App.jsx y capturamos el cambio de avatar de forma inmediata
+    onAnswer(userAnswer, setFeedback, (newState) => {
+      setAvatarState(newState);
+    });
   };
 
   const handleInputSubmit = (e) => {
     e.preventDefault();
     if (!answerInput.trim()) return;
-    handleValidationAndSubmission(answerInput);
+    handleSubmission(answerInput);
   };
 
   const handleOptionClick = (optText) => {
     setSelectedOption(optText);
-    handleValidationAndSubmission(optText);
+    handleSubmission(optText);
   };
 
   if (!question) {
@@ -103,7 +98,7 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
 
       <div className="relative z-10 max-w-5xl w-full h-full flex flex-col justify-between py-6 px-4">
         
-        {/* Barra superior con vidas y puntaje */}
+        {/* Barra superior */}
         <div className="flex justify-between items-center bg-slate-950/85 border-2 border-amber-500/70 rounded-xl px-6 py-3 shadow-2xl backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase font-extrabold text-slate-400">Vidas:</span>
@@ -131,7 +126,7 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
         {/* Zona Central */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 my-auto">
           
-          {/* Avatar dinámico que reacciona al instante */}
+          {/* Avatar dinámico */}
           <div className="flex flex-col items-center shrink-0">
             <img
               key={avatarState}
@@ -141,7 +136,7 @@ export default function QuestionCard({ question, difficulty, lives, score, playe
               style={{ imageRendering: "pixelated" }}
             />
             <span className="mt-1 text-[11px] font-bold text-amber-300 uppercase tracking-wider bg-slate-950/80 px-2 py-0.5 rounded border border-amber-500/40">
-              {avatarState === "pensando" ? "Pensando..." : avatarState === "acertado" ? "¡Acertó!" : "¡Disparo!"}
+              {avatarState === "pensando" ? "Pensando..." : avatarState === "acertado" ? "¡BANG / Daño!" : "¡Se salvó!"}
             </span>
           </div>
 

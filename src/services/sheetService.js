@@ -53,20 +53,38 @@ export async function fetchQuestionsFromSheet() {
     
     const parsedQuestions = rows.slice(1).map((row, idx) => {
       let rawDiff = row[1]?.trim().toLowerCase() || "verde";
-      // Normalizamos las dificultades del Sheet para que coincidan con el juego
       if (rawDiff === "amarillo") rawDiff = "amarilla";
       if (rawDiff === "rojo") rawDiff = "roja";
+
+      const rawType = row[2]?.trim().toLowerCase() || "input";
+      const opA = row[4]?.trim() || "";
+      const opB = row[5]?.trim() || "";
+      const opC = row[6]?.trim() || "";
+      
+      let correctVal = row[7]?.trim() || "";
+
+      // Si es múltiple y en la columna de respuesta dice "Opción A/B/C", 
+      // lo resolvemos al texto real de la opción correspondiente.
+      if (rawType === "multiple" || rawType === "choice") {
+        const upperCorr = correctVal.toUpperCase();
+        if (upperCorr.includes("OPCIÓN A") || upperCorr.includes("OPCION A")) {
+          correctVal = opA;
+        } else if (upperCorr.includes("OPCIÓN B") || upperCorr.includes("OPCION B")) {
+          correctVal = opB;
+        } else if (upperCorr.includes("OPCIÓN C") || upperCorr.includes("OPCION C")) {
+          correctVal = opC;
+        }
+      }
 
       return {
         id: idx + 1,
         difficulty: rawDiff,
-        type: row[2]?.trim() || "input",
-        // CORREGIDO: Mapeamos como 'question' para que QuestionCard.jsx lo lea perfectamente
-        question: row[3]?.trim() || "", 
-        opA: row[4]?.trim() || "",
-        opB: row[5]?.trim() || "",
-        opC: row[6]?.trim() || "",
-        correct: row[7]?.trim() || "",
+        type: rawType,
+        question: row[3]?.trim() || "",
+        opA: opA,
+        opB: opB,
+        opC: opC,
+        correct: correctVal,
         explanation: row[8]?.trim() || ""
       };
     }).filter(q => q.question !== "");
