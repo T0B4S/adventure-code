@@ -17,9 +17,9 @@ import alumnoDerrota from "../assets/screens/alumno-derrota-gameOver.png";
 import alumnoVictoria from "../assets/screens/alumno-victoria.png";
 import alumnoPerfecta from "../assets/screens/alumno-victoria-perfecta.png";
 
-import profesorDerrota from "../assets/screens/alumno-derrota-gameOver.png";
-import profesorVictoria from "../assets/screens/alumno-victoria.png";
-import profesorPerfecta from "../assets/screens/alumno-victoria-perfecta.png";
+import profesorDerrota from "../assets/screens/profesor-derrota-gameOver.png";
+import profesorVictoria from "../assets/screens/profesor-victoria.png";
+import profesorPerfecta from "../assets/screens/profesor-victoria-perfecta.png";
 
 export default function GameOverView({ status, score, lives, playerName, avatarId, onReset }) {
   const endAudioRef = useRef(null);
